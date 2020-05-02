@@ -4,7 +4,7 @@
 m4_include(lib/common.sh)
 m4_include(lib/archroot.sh)
 
-base_packages=(base-devel)
+base_packages=(base-devel wavystats psmisc)
 makechrootpkg_args=(-c -n -C)
 
 cmd="${0##*/}"
@@ -20,10 +20,7 @@ fi
 chroots='/var/lib/archbuild'
 clean_first=false
 
-pacman_config="@pkgdatadir@/pacman-${repo}.conf"
-if [[ -f @pkgdatadir@/pacman-${repo}-${arch}.conf ]]; then
-    pacman_config="@pkgdatadir@/pacman-${repo}-${arch}.conf"
-fi
+pacman_config="/etc/pacman.conf"
 makepkg_config="@pkgdatadir@/makepkg-${arch}.conf"
 if [[ -f @pkgdatadir@/makepkg-${repo}-${arch}.conf ]]; then
     makepkg_config="@pkgdatadir@/makepkg-${repo}-${arch}.conf"

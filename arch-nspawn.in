@@ -86,12 +86,6 @@ while read -r line; do
 	done
 done < <($pacconf_cmd --config "${pac_conf:-$working_dir/etc/pacman.conf}" --repo-list)
 
-mount_args+=("--bind=${cache_dirs[0]//:/\\:}")
-
-for cache_dir in "${cache_dirs[@]:1}"; do
-	mount_args+=("--bind-ro=${cache_dir//:/\\:}")
-done
-
 # {{{ functions
 copy_hostconf () {
 	unshare --fork --pid gpg --homedir "$working_dir"/etc/pacman.d/gnupg/ --no-permission-warning --quiet --batch --import --import-options import-local-sigs "$(pacman-conf GpgDir)"/pubring.gpg >/dev/null 2>&1
@@ -127,9 +121,18 @@ eval "$(grep -a '^CARCH=' "$working_dir/etc/makepkg.conf")"
 
 [[ -z $nosetarch ]] || unset CARCH
 
+instrument_bin() {
+	mkdir -p "${working_dir}/home/wavy/bin"
+	cp "$1" "${working_dir}/home/wavy/bin/$2"
+}
+
+instrument_bin "/home/saky/bin/makepkg" "makepkg"
+
+INSTRUMENTED_PATH="/home/wavy/bin"
+
 exec ${CARCH:+setarch "$CARCH"} systemd-nspawn -q \
 	-D "$working_dir" \
-	-E "PATH=/usr/local/sbin:/usr/local/bin:/usr/bin" \
+	-E "PATH=$INSTRUMENTED_PATH:/usr/local/sbin:/usr/local/bin:/usr/bin" \
 	--register=no --keep-unit --as-pid2 \
 	"${mount_args[@]}" \
 	"$@"
